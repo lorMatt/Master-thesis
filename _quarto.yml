@@ -1,7 +1,6 @@
 project:
   type: book
   
-
 book:
   title: "Trajectories of local development and public opinion"
   subtitle: "Environmental policy in Umbria"
@@ -16,7 +15,6 @@ book:
   # cover-image: cover.png
   search: true
   repo-url: 'https://github.com/stars/lorMatt/lists/lm-and-public-opinion-in-umbria'
-  repo-actions: [edit]
   downloads: [pdf, epub]
   sharing: [twitter, facebook]
   chapters:
