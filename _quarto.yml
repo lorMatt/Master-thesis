@@ -15,9 +15,14 @@ book:
   date: "2/24/2025"
   # cover-image: cover.png
   search: true
-  repo-url: 'https://github.com/stars/lorMatt/lists/lm-and-public-opinion-in-umbria'
   downloads: [pdf, epub]
-  sharing: [twitter, facebook]
+  repo-url: 'https://github.com/stars/lorMatt/lists/lm-and-public-opinion-in-umbria'
+  navbar:
+    left:
+      - text: My blog
+        href: https://lormatt.github.io/
+
+      
   chapters:
     - index.qmd
     - intro.qmd
@@ -35,7 +40,7 @@ bibliography: references.bib
 
 format:
   html:
-    theme: litera
+    theme: simplex
     lightbox: true
     number-sections: false
     # number-depth: 3

@@ -1,6 +1,10 @@
 ---
 title: Preface
 ---
+This thesis marked the end of my two-year journey as a master student of Politics and Social Policy at the University of Bologna. It represents the result of approximately a year of work between a healthy amount of desk research, data collection, data analysis, and finally writing it all down. Initially an excuse to get accustomed to computational methods for social sciences and Natural Language Processing (NLP), it quickly turned into an opportunity to rekindle my personal connection with my home town.
+
+If you want to get in touch or are curious about the rest of the social sciency stuff I do, feel free to give my [website](https://lormatt.github.io/) a look.
+
 ## Acknowledgements {.unnumbered}
 
 My heartfelt thanks go first and foremost to my family. Thanks for listening, for caring, and for making sure I didn’t completely lose it during these five years at university.
@@ -13,6 +17,6 @@ To my friends in Bologna, thank you for sharing your experiences and thoughts wi
 
 To my friends in Ippogogo, thanks for conjuring a theatre out of thin air and allowing me to take part in the lovely task of telling stories.
 
-To my friends in Ferrara, thanks for welcoming a grumpy stranger so late in the game.
+To my friends in Ferrara, thanks for welcoming a stranger so late in the game. Our chats made me rethink the very way in which I understand the space around me, and almost made the weather bearable.
 
-And to all my friends around the world, whether you’re at home or off on some big adventure—thanks for sharing a bit of yourselves with me.
+Finally, to all my friends around the world, whether you’re at home or off on some big adventure, thanks for sharing a bit of yourselves with me.
