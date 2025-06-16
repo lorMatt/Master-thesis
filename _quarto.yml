@@ -28,17 +28,18 @@ book:
     - conclusions.qmd
     - references.qmd
   appendices:
-    - Text retrieval.qmd
     - Pre-processing.qmd
+    - Text retrieval.qmd
 
 bibliography: references.bib
 
 format:
   html:
-    theme: simplex
+    theme: litera
     lightbox: true
-    number-sections: true
-    number-depth: 3
+    number-sections: false
+    # number-depth: 3
+    toc: true
 
 editor: visual
 

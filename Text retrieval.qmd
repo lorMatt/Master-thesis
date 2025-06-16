@@ -1,6 +1,6 @@
-## B. Text retrieval
+# Text retrieval
 
-### YouTube querying
+## YouTube querying
 
 The Python script used to retrieve and transcribe YouTube videos took advantage of the native querying system, cycling through lists of keywords. Below is a table of all queries associated with each city.
 
@@ -11,7 +11,7 @@ The Python script used to retrieve and transcribe YouTube videos took advantage 
 | Industry | industria, nocività | acciaieria, AST, industria |
 | Transportation | ciclabile, mobilità sostenibile, BRT, autobus | ciclabile, mobilità sostenibile, BRT, autobus |
 
-### Keyword-based retrieval in Umbria Press
+## Keyword-based retrieval in Umbria Press
 
 News articles were queried through keyword-based matching. The keyword are listed below.
 
