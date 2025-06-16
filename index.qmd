@@ -1,0 +1,25 @@
+## Acknowledgements {.unnumbered}
+
+My heartfelt thanks go first and foremost to my family. Thanks for listening, for caring, and for making sure I didn’t completely lose it during these five years at university.
+
+Many thanks to my supervisors, too, for their patience while teaching a newbie how to actually write something.
+
+To all my friends in Terni—thanks for keeping me grounded and cheering me on, even from far away. Growing up together has been such a privilege and a gift.
+
+To my friends in Bologna, thank you for sharing your experiences and thoughts with me. I would not be half the person I am today if it wasn't for the conversations we had between classes.
+
+To my friends in Ippogogo, thanks for conjuring a theatre out of thin air and allowing me to take part in the lovely task of telling stories.
+
+To my friends in Ferrara, thanks for welcoming a grumpy stranger so late in the game.
+
+And to all my friends around the world, whether you’re at home or off on some big adventure—thanks for sharing a bit of yourselves with me.
+
+## Abstract {.unnumbered}
+
+This study explores how local labor market structures influence public discourse on environmental policy during the energy transition. It hypothesizes that areas marked by industrial decline and a high share of non-green jobs are more likely to frame environmental debates in terms of job losses. Using computational social science methods, including natural language processing on local news articles and YouTube videos, the research analyzes whether economic exposure to the energy transition—measured by deindustrialization and non-green employment—affects the salience and polarization of environmental policy discussions.
+
+The analysis compares Terni and Perugia, two similarly sized cities in Umbria, Italy, with contrasting economic histories. Terni, a former industrial hub, has experienced significant job losses and pollution, resulting in public discourse that often opposes environmental policy to employment needs. Perugia, with its service-based economy, centers environmental debates on transportation and urban development, influenced by student and advocacy groups.
+
+Data was collected via automated scraping of local news and YouTube content, then analyzed through topic modeling, sentiment analysis, and word embeddings. Results reveal clear differences in topic salience: heavy industry dominates Terni’s discourse, while transportation is more prominent in Perugia. Environmental policy gains attention mainly when promoted by social movements and is often overshadowed by other issues. When heavy industry is discussed, environmental topics are rarely mentioned. Polarization is low, with similar sentiment toward environmental policy in both cities, except for a more positive view of natural habitats in Terni.
+
+All datasets and code are publicly available, supporting transparency and further research.

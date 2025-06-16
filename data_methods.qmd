@@ -1,0 +1,217 @@
+# Data and methods
+
+```{r}
+#| label: 'Setup'
+#| echo: false
+#| output: false
+
+
+if (!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load(tidyverse, patchwork, ggiraph, knitr)
+
+# Data import ------------------------------------------------------------------
+time_art_data <- read_csv("Chap 4 material/time_art_data.csv")
+reg_art_data <- read_csv("Chap 4 material/reg_art_data.csv")
+YTData_vis <- read_rds("Chap 4 material/YTData_vis.RDS")
+# Descriptives -----------------------------------------------------------------
+## graphics ----
+### palette ----
+pal <- c(
+  "#FDA638",
+  "#459395",
+  "#EB7C69",
+  '#972F5A',
+  '#2BE19E',
+  '#121333'
+)
+na_col <- "#866f85"
+
+### theming ----
+theme_set(theme(panel.background = element_blank(),
+                axis.ticks = element_blank(),
+                legend.title = element_blank(),
+                panel.grid.major = element_line(linetype = 'solid', colour = 'gray97', linewidth = .3),
+                panel.grid.minor = element_blank(),
+                axis.line.x = element_line(colour = 'gray25'),
+                axis.line.y = element_line(colour = 'gray25')))
+```
+
+In this chapter, the data sources and the analytical methods used will be explored and discussed. First, a description of the data collection process will serve as an introduction to the two corpora themselves. The difficulties encountered and the resulting limitations in the quality of the data will be here documented and thoroughly examined. Second, the process of text retrieval, as well as the analysis and mining techniques employed in the following chapters will be identified and explained.
+
+## Sample selection
+
+Having now established that media will be here considered a viable a proxy for public discourse, we turn to the task of constructing a sample of it to be used in this analysis. In the current age of digital communication, a *multi-modal* approach is in order. To capture a wider range of political communication, we turn here to both written text and video.
+
+### Transcribing YouTube videos
+
+YouTube has long been home to a rich and diverse collection of communicative content. Containing both structured press reports by *traditional* news outlets and bystanders' contributions, it proves extremely valuable in obtaining an overview of public discourse that is not just limited to what professionals and *insiders* think or write. Since, for the purpose of the present study, we are interested in what are the most *visible* opinions or points of view, we could even take advantage of YouTube's own retrieval system. The videos included in the corpus were selected through automated querying. A Python script was set up to cycle through a set of keywords associated with each of the two cities. Every video was then converted to audio and transcribed using OpenAI's Whisper API [@openai2022]. This method, however, presented a few critical difficulties, connected to the nature of the medium itself. First of all, not all videos identified by the queries were relevant to the object of this study. Keywords connected to the biosphere and ecosystems were often linked to videos catered to tourists, as they overlapped with the image of Umbria as Italy’s green heart, which has nothing to do with environment policy per se. In other cases, the match between title and keyword was completely coincidental. For instance, the keywords “spazi verdi” (green areas) matched with a video essay about renovating Terni’s old theatre, Teatro Verdi. Another problem was that the quality of audio recordings was often very poor, and the dialogue delivered in the local dialect. This is equally true in the cases of demonstrations and press conferences. Professional politicians tend to drift from a linguistic register to the other, as well as between standard italian and Umbrian dialect, within even a few sentences of the same speech. Steel workers, on the other hand, tend to use very common idiomatic expressions such as *me ne volevo anna’ via* ("I wanted to leave"), or *ce stanno a pija’ pe’ lu culo* ("they’re screwing with us"), which Whisper was not able to transcribe adequately. The simplest (although definitely time-consuming) solution was manually clean the data, preparing it to be *digested* through natural language processing.
+
+### Scraping local news articles
+
+More *traditional* textual media was not overlooked. Three on-line media outlets were chosen to be part of a second corpus:
+
+*Corriere dell'Umbria* is an established regional newspaper, available both on-line and in print. Due to its sheer size, it has become somewhat of a staple in local press, notwithstanding its relatively young age (it was founded in 2007). Its articles prove particularly useful to a comparative study of this sort, as two of its six newsrooms are based in Perugia and Terni.
+
+*Terninrete* and *Perugia Today* are some of the oldest *purely* on-line newspapers in Umbria (founded respectively in 2009 and 2011). Embracing the fast pace of internet-based communication, they tend to publish short, rapid-fire articles. As will be discussed in a few paragraphs, this clearly impacts the quality of sentiment analysis results: *fast* *journalism* tends to be closer in tone to news agency flashes, as in more neutral in their word choices. Their responsiveness, however, is of great use in investigating a topic's salience.
+
+## The corpora
+
+Two corpora were built: the first comprises of 530 transcriptions of YouTube videos selected through keyword querying, the second comprises over 150000 articles published by three major on-line news outlets. Although we concede that the tone and topic composition of public discourse might differ from what can be read in the press or found on YouTube, it would be reasonable to expect that news outlets would have commercial reasons to mirror what is talked about "in the streets", and that on-line, decentralised media platforms (like YouTube) could offer some, more or less direct, insight into public discourse.
+
+### YouTube
+
+As Figure 4.1, the distribution of the videos' upload date is skewed towards more recent results. The number of usable videos in Perugia is also considerably higher than those in Terni. While the difference between the number of videos per city is easily explained through population and the vastly different amount of political activity (Perugia being the regional capital), the distribution of videos over time could offer some insight on the salience of each topic.
+
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'YT descriptives viz'
+#| echo: false
+#| warning: false
+
+# Corpus composition
+time_gg <- YTData_vis |> 
+  count(upload_date, cat) |> 
+  complete(upload_date, cat, fill = list(value = 0)) |> 
+  ggplot(aes(upload_date, n, fill = cat, data_id = cat, tooltip = n)) +
+  geom_col_interactive(position = position_dodge(width = 300), width = 300) +
+  theme(axis.line.y = element_blank()) +
+  scale_x_date(limits = c(as_date('1 January 2011', format = "%d %B %Y") - days(360),
+                          as_date('1 June 2025', format = "%d %B %Y")),
+               date_breaks = '1 year', date_labels = '%Y',
+               expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,30))
+
+city_gg <- YTData_vis |> 
+  count(city, cat) |> 
+  ggplot(aes(city, n, fill = cat, data_id = city, tooltip = n)) +
+  coord_flip() +
+  theme(axis.line.x = element_blank()) +
+  geom_col_interactive() +
+  scale_y_continuous(expand = c(0,0))
+
+p <- time_gg / city_gg +
+  plot_layout(guides = 'collect', heights  = c(8,1)) &
+  plot_annotation(title = 'Transcription distribution over time',
+                  subtitle = 'By query category and city') &
+  scale_fill_manual(values = pal, na.value = na_col) &
+  theme(legend.position = 'bottom',
+        axis.title = element_blank())
+
+### interactive
+girafe(ggobj = p, width_svg = 8, height_svg = 5.5,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.2;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+
+::: {.content-hidden when-format="html"}
+![Transcription distribution over time, by query category and city](Images/Chapter%204/YTData_desc.png)
+:::
+
+### Umbria Press
+
+The second corpus in this study comprises of articles from three on-line local newspapers: *Terninrete*, *PerugiaToday*, and *Corriere dell'Umbria*[^data_methods-1]. The first two are linked to the cities of Terni and Perugia, respectively, as their articles refer strictly to these two cities. *Corriere dell'Umbria*, on the other hand, is a regional news outlet, with separated newsrooms for the two cities. This was taken into account, and the articles divided accordingly.
+
+[^data_methods-1]: The technology used to retrieve all articles in machine-readable form was the R package `rvest`, which allows the user to identify different sections of an html page by specifying their CSS attributes and store the text associated with each one in a data frame [@rvest]. Parallel sessions were set up taking advantage of the `future` package, in order to reduce run times [@future]. The complete dataset is available on-line, complete with the source code for the scrapers [@mattioli2025].
+
+The corpus' composition is represented in Figure 4.2. A few of its features are evident to the eye: first of all, *PerugiaToday* is by far the most prolific news outlet of the three, with more than 125000 articles published. In general, the two *fast-journalism* outlets (*PerugiaToday*, *Terninrete*) flood the corpus with information, making the couple hundreds of articles from the *Corriere* almost disappear.
+
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'UP descriptives viz'
+#| echo: false
+#| warning: false
+
+## Distribution of articles over time ----
+time_art <- time_art_data |> 
+  ggplot(aes(month, n, fill = newspaper, data_id = month, tooltip = n)) +
+  geom_col_interactive(position = 'stack', width = 70) +
+  theme(axis.line.y = element_blank()) +
+  scale_x_date(limits = c(as_date('1 January 2011', format = "%d %B %Y"),
+                          as_date('1 June 2025', format = "%d %B %Y")),
+               date_breaks = '2 years', date_labels = '%Y',
+               expand = c(0.001,0))
+
+## Regional composition ----
+reg_art <- reg_art_data |> 
+  ggplot(aes(city, n, fill = newspaper, data_id = city, tooltip = n)) +
+  coord_flip() +
+  theme(axis.line.x = element_blank()) +
+  geom_col_interactive()
+
+## Patchwork ----
+p <- time_art / reg_art +
+  plot_layout(guides = 'collect', heights  = c(8,1)) &
+  plot_annotation(title = 'Article distribution over time',
+                  subtitle = 'By newspaper and city') &
+  # guides(fill = guide_legend(override.aes = list(shape = 5))) &
+  scale_y_continuous(expand = c(0,0)) &
+  scale_fill_manual(values = pal, na.value = na_col) &
+  theme(legend.position = 'bottom',
+        axis.title = element_blank())
+
+### interactive
+girafe(ggobj = p, width_svg = 8, height_svg = 5.5,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.3;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+
+::: {.content-hidden when-format="html"}
+![Article distribution over time, by newspaper and city](Images/Chapter%204/UPData_desc.png)
+:::
+
+## Analytical strategy
+
+This study must be understood as one of exploratory nature. Its aim is not to *explain* a phenomenon, rather to establish its existence [@merton1987]. After a thorough description of the corpus, it will focus on two dimensions of public discourse: salience and polarisation. The tools employed to do so are here explained and compared.[^data_methods-2]
+
+[^data_methods-2]: The analysis was conducted entirely using the statistical coding language R and mostly adheres to the *tidy data* principles defined by @wickham2014, thus relies heavily on the `tidyverse` family of packages [@tidyverse].
+
+### Putting ideas in context
+
+Examining the context in which a word is placed is paramount in understanding the different ideas to which it is connected. KWIC (KeyWords In Context) is probably the most basic approach to this task: by simply querying a keyword, one can retrieve its immediate context and qualitatively assess it. The R package `quanteda` provides the researcher with a very simple interface to do so [@quanteda].
+
+#### Ranking words 
+
+Being able to rank words in terms of their relative importance to each document is a very useful tool to dissect a corpus. The standard method to do this is a simple statistical measure called tf-idf. The index is decomposable in two parts, term (relative) frequency and inverse document frequency. For a term "t" and a document "d":
+
+$$
+\text{tf}_{t,d} = \frac{\text{frequency of term } t \text{ in document } d}
+                       {\text{total number of terms in document } d}
+$$
+
+$$
+\text{idf}_t = log_{10} \frac{\text{total number of documents}}
+                             {\text{total documents with term } t}
+$$
+
+Tf-idf is computed as $\text{tf-idf}_{t,d} = \text{tf}_{t,d} \cdot \text{idf}_t$. By finding the highest tf-idf in each document or topic, one can qualify the context in which a concept or construct lives.
+
+#### Finding meaning *between* words
+
+Occurrences within the corpus can be represented as relational data, allowing us to build networks of words. Using bigrams as a unit of analysis, the relationships between words will be analysed and dissected graphically [@ggraph; @tidygraph].
+
+A relatively new approach used in text retrieval and mining is word embeddings. A very basic explanation of what word embedding means would be finding a numerical representation for each word in a corpus [@jurafsky2025]. What a word embedding model does is basically finding a point in a multidimensional space representing the *meaning* of each word relative to all others. The distance of each word in this *semantic* space can be then understood as a measure of their difference in meaning. Word embeddings are often used as a featurisation step for supervised classification models. In this study, however, they will be used mostly as a retrieval device, aiding us to find the words which are closest to pre-identified keywords relating to environmental policy.
+
+### Sentiment analysis
+
+To acquire insight on the tone of public discourse around environmental policy, dictionary-based sentiment analysis was conducted. In very pragmatic terms, this means joining a dictionary of positive and negative words with the text contained in the corpora, then analyse the frequency of matches. Although this kind of sentiment analysis can be seen as a rather crude instrument, it can still prove useful in exploring the corpora [@silge]. The biggest obstacle encountered while working on this section of the study was the difficulty in finding a suitable dictionary. While dictionaries for the English language are more than abundant, acquiring one for Italian is no simple task. Although some extremely valuable work was conducted by @basile2013 more than ten years ago, their dictionary (SENTIX) requires PoS tagging, which was not possible to perform on the corpora in this study. The solution was to use the multilingual lexicon published by @chen2014. As is often the case with dictionary-based techniques, some minor tweaking was necessary. The word *rifiuto* ("rubbish"), for instance, was listed as negative, since it can be used as an insult when referring to a person. Of course, being our topic of interest connected to waste management, the word had to be excluded from the dictionary altogether.

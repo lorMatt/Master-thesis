@@ -1,0 +1,45 @@
+project:
+  type: book
+  
+
+book:
+  title: "Trajectories of local development and public opinion"
+  subtitle: "Environmental policy in Umbria"
+  author:
+    - name: "Lorenzo Mattioli"
+      affiliations:
+    - name: "Alma Mater Studiorum - Università di Bologna"
+      department: "SPS - Scienze Politiche e Sociali"
+      
+  keyword: 'social stratification'
+  date: "2/24/2025"
+  # cover-image: cover.png
+  search: true
+  repo-url: 'https://github.com/stars/lorMatt/lists/lm-and-public-opinion-in-umbria'
+  repo-actions: [edit]
+  downloads: [pdf, epub]
+  sharing: [twitter, facebook]
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - review_framework.qmd
+    - umbria.qmd
+    - data_methods.qmd
+    - results_discussion.qmd
+    - conclusions.qmd
+    - references.qmd
+  appendices:
+    - Text retrieval.qmd
+    - Pre-processing.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: simplex
+    lightbox: true
+    number-sections: true
+    number-depth: 3
+
+editor: visual
+

@@ -1,0 +1,33 @@
+## B. Text retrieval
+
+### YouTube querying
+
+The Python script used to retrieve and transcribe YouTube videos took advantage of the native querying system, cycling through lists of keywords. Below is a table of all queries associated with each city.
+
+| Query category | PG | TR |
+|:---|----|----|
+| Waste management | rifiuti, smaltimento, raccolta differenziata | inceneritore, rifiuti, smaltimento |
+| Environment, nature | ambiente, ecosistema, qualità dell'aria, qualità dell'acqua, inquinamento, spazi verdi, verde urbano, emissioni | ambiente, ecosistema, qualità dell'aria, qualità dell'acqua, inquinamento, spazi verdi, verde urbano |
+| Industry | industria, nocività | acciaieria, AST, industria |
+| Transportation | ciclabile, mobilità sostenibile, BRT, autobus | ciclabile, mobilità sostenibile, BRT, autobus |
+
+### Keyword-based retrieval in Umbria Press
+
+News articles were queried through keyword-based matching. The keyword are listed below.
+
+| Query category | Keywords |
+|----|----|
+| Industry | acciaieria, industria, acciaio, Arvedi, Thyssen, Thyssen-Krupp |
+| Transportation | treno, aeroporto, Trenitalia, ciclabile, mobilità, BRT, trasporti |
+| Environment | emissioni, PM10, inquinamento, ecolog, riuso, ecosistem, rifiuti, inceneritor |
+
+### Contextual sentiment querying
+
+The "environment" category was further decomposed and expanded in order to study the contextual sentiment of significant terms. All terms are listed below.
+
+| Query category   | Keywords                    |
+|------------------|-----------------------------|
+| Emissions        | emissioni, PM10             |
+| Pollution        | inquinamento,               |
+| Ecology          | ecolog, ecosistem           |
+| Waste management | riuso, rifiuti, inceneritor |

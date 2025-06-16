@@ -1,0 +1,362 @@
+# Results
+
+```{r}
+#| label: 'Setup'
+#| echo: false
+#| output: false
+
+if (!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load(tidyverse, tidytext, quanteda, ggiraph, ggh4x)
+
+# Import data ---------------------------------------------------------------------------
+UmbriaPressDet <- read_rds('Chap 5 material/UmbriaPressDet.RDS')
+UPTok <- read_rds('Chap 5 material/UPTok_retrieval.RDS')
+YTData <- read_rds('Chap 5 material/YTData.RDS')
+YTvidSent <- read_rds('Chap 5 material/YTvidSent.RDS')
+YTData_vis <- read_rds("Chap 5 material/YTData_vis.RDS")
+UmbriaPressSal <- readRDS('Chap 5 material/UmbriaPressSal.RDS')
+# Visuals -----------------------------------------------------------------
+## palette ----
+pal <- c(
+  "#FDA638",
+  "#459395",
+  "#EB7C69",
+  '#972F5A',
+  '#2BE19E',
+  '#121333'
+)
+na_col <- "#866f85"
+
+## theming ----
+theme_set(theme(panel.background = element_blank(),
+                axis.ticks = element_blank(),
+                legend.title = element_blank(),
+                panel.grid.major = element_line(linetype = 'solid', colour = 'gray97', linewidth = .3),
+                panel.grid.minor = element_blank(),
+                axis.line.x = element_line(colour = 'gray25'),
+                axis.line.y = element_line(colour = 'gray25'),
+                strip.background = element_blank(),
+                strip.text = element_text(face = 'bold')))
+
+# Defining dictionaries ----
+Industry <- c('acciaieria', 'industria', 'acciaio', 'Arvedi', 'Thyssen',
+              'Thyssen-Krupp') |> 
+  paste(collapse = '|')
+Transportation <- c('treno', 'aeroporto', 'Trenitalia',
+              'ciclabile', 'mobilità', 'BRT', 'trasporti') |> 
+  paste(collapse = '|')
+Environment <- c('emissioni', 'PM10', 'inquinamento', 'ecolog', 'riuso',
+               'ecosistem', 'rifiuti', 'inceneritor') |> 
+  paste(collapse = '|')
+```
+
+In this chapter, the analyses conducted on both corpora will be presented and discussed, in light of the historical and political context already explored in chapter 3.
+
+## Analysing the YouTube corpus
+
+As was already discussed in the previous chapter, the present corpus contains relatively low-quality data. The unstructured, colloquial communicative style of YouTube videos, together with wavering sound quality and intelligibility, limit greatly the range of viable analytical tools. Nevertheless, one must never underestimate "how much data science you can do with just counts and a little basic arithmetic" [@wickham2023]. As will be visible in the next few paragraphs, there is more than enough meaning to extract from this dataset.
+
+### Salience
+
+The first question to be answered is: how much do people talk about environmental policy in Umbria? Is it salient at all? And then again: *when* was it more salient? To answer these questions, simply counting the amount of documents in which terms connected to environmental policy occur is the simplest, but probably most effective strategy.
+
+The amount of videos retrieved per city varies drastically from a query category to another. As one would expect, numerous videos related to heavy industry can be found about the city of Terni. Their amount peaks in 2015, when the protests climaxed, then drop immediately the next year only to peak again in 2022, when the Arvedi group bought the steel factory from Thyssen-Krupp [@terniinrete2022]. Shifting from foreign to Italian property was a very conflictual topic.
+
+Similarly, transportation is a very hot topic in Perugia. The videos in this category tend to be very positive short documentaries about good practices in sustainable transportation, especially around 2023. A considerable peak can be detected in 2021, year in which the *Bus Rapid Transfer* (BRT)[^results_discussion-1] service was established, requiring considerable investment and urban rearrangement. Sustainable mobility became more salient in Terni recently, due to new cycling infrastructure being under study. A peak in 2017 was caused by the news of a considerable investment by the municipality in bus transportation.
+
+[^results_discussion-1]: The BRT was defined by the municipality as an "innovative electric transport system, based on an advanced road transport concept, with particularly high standards, characterised by low emissions and high transport capacity" [@comunediperugia]. In plain English, electric buses.
+
+Waste management tends to be generally more relevant in Terni, home of three incinerators. The discourse around them became particularly heated in 2020, when one of them was finally shut down [@tuttoggi].
+
+Finally, the salience of environment- and nature-related posts in Terni was apparently influenced by the relatively crowded Fridays for Future protests in 2019. The movement's popularity prompted local research centres to publish *Sentieri* and *Mal'aria* [@zona2019; @legambiente2019], two very influential studies on air quality in the area, and local politicians to take on the problem. The same thing cannot be said for Perugia, where the results of environment-related queries comprise mainly of videos catered to tourists.
+
+At a first glance, environmental policy seems to be more *politicised* in Terni than in Perugia, and its salience linked to social movements' success.
+
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'YT salience'
+#| echo: false
+#| warning: false
+
+# Corpus composition
+YT_sal_gg <- YTvidSent |>
+  ungroup() |> 
+  mutate(upload_date = case_when(
+    str_detect(upload_date, "year ago") ~ today() - years(as.numeric(str_extract(upload_date, "\\d+"))),
+    str_detect(upload_date, "years ago") ~ today() - years(as.numeric(str_extract(upload_date, "\\d+"))),
+    str_detect(upload_date, "days ago") ~ today() - days(as.numeric(str_extract(upload_date, "\\d+"))),
+    str_detect(upload_date, "weeks ago") ~ today() - weeks(as.numeric(str_extract(upload_date, "\\d+"))),
+    TRUE ~ as.Date(NA) # Gestisce altri formati o errori
+  )) |>
+  count(upload_date, cat, city) |>
+  complete(upload_date, cat, city, fill = list(n = 0)) |>
+  group_by(cat, city) |> 
+  mutate(n = n/sum(n)) |> 
+  ggplot(aes(upload_date, n, fill = city, data_id = city, tooltip = round(n, digits = 2))) +
+  geom_col_interactive(position = position_dodge(width = 300), width = 300) +
+  theme(axis.line.y = element_blank()) +
+  scale_x_date(limits = c(as_date('1 January 2011', format = "%d %B %Y") - days(360),
+                          as_date('1 June 2025', format = "%d %B %Y")),
+               date_breaks = '1 year', date_labels = '%Y',
+               expand = c(0,0)) +
+  facet_wrap2(~cat, nrow = 2, axes = 'x') +
+  labs(title = 'Relative salience by city and month',
+       subtitle = 'Computed as monthly percentage of videos over total within category') +
+  guides(x = guide_axis(angle = 45)) +
+  scale_fill_manual(values = pal) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,.3)) +
+  theme(legend.position = 'bottom',
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+
+### interactive
+girafe(ggobj = YT_sal_gg, width_svg = 10, height_svg = 10,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.3;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+
+::: {.content-hidden when-format="html"}
+![Relative salience per month by query category, computed as monthly percentage of videos over total within category](Images/Chapter%205/YT_salience.png){#fig-YTsalience}
+:::
+
+### Tone and polarisation
+
+At a superficial level, sentiment values in each category seem to be fairly balanced between Perugia and Terni. Looking at individual keywords, however, reveals more accurate insight. The videos retrieved with the "Industry" query show an interesting discrepancy: the ones connected to more *general* terms, such as *industria* (industry), or even *acciaieria* (steel factory) are markedly positive. It is only when one specifically looks for the exact name of the steel works in Terni (Acciai Speciali Terni - AST) that one gets polarised results. This is due to the fact that the more general keywords tend to match to political press releases, which are usually characterised by an either artificially neutral or markedly positive tone. The only exceptions are the few videos taken during protests, displaying very negative sentiment values. The transportation category in Perugia offers some evidence in the opposite direction: more general queries about buses retrieve mostly negative videos about the current state of public transport, whereas querying a specific project (BRT) retrieves enthusiastic political speeches about new public investment. Waste management in Terni is especially interesting, the number of videos about the incinerator with positive and negative sentiment being almost exactly the same.
+
+::: landscape
+![Dictionary-based sentiment analysis on YouTube videos, computed as ratio of positive over total matches per video](Images/Chapter%205/YTsent.png)
+:::
+
+### Co-occurring topics
+
+In general, we can confirm that environmental policy is more polarised and *politicised* in Terni, as even the sentiment computed on the basic query "environment" is extremely polarised, as opposed to Perugia, where videos collected with the same query are clearly positive. The problem of air quality seems to drive negative sentiment on environment-related topics in Terni.
+
+**The issue of insufficient air quality in Terni is clearly connected to the *noxiousness* of its industrial activity. However, when videos talk about industry, they almost never mention environmental policy. If one searches for videos about industrial activity in Terni, they will hear absolutely no mention of its effects on the environment. Nevertheless, a significant portion of the videos talking about the environmental conditions of the same town mention industrial activity at least once.**
+
+::::::: columns
+:::: {.column width="50%"}
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'YT cross-query'
+#| echo: false
+#| warning: false
+
+crossNum_gg <- YTData |>
+  mutate(Industry = ifelse(str_detect(transcription, regex(Industry, ignore_case = T)), 1, 0),
+         Transportation = ifelse(str_detect(transcription, regex(Transportation, ignore_case = T)), 1, 0),
+         Environment = ifelse(str_detect(transcription, regex(Environment, ignore_case = T)), 1, 0)) |> 
+  filter(Environment == 1, cat != 'Environment, nature') |> 
+  count(cat, city) |> 
+  bind_rows(tibble(cat = 'Industry', city = 'TR', n = 0)) |> 
+  ggplot(aes(n, cat, fill = cat, data_id = cat, tooltip = n)) +
+  geom_col_interactive(position = 'dodge') +
+  geom_text_interactive(aes(x = .5, label = cat), hjust = 0, colour = 'white') +
+  geom_vline(aes(xintercept = 0), colour = 'gray25') +
+  geom_text_interactive(data = ~. |> filter(city == 'TR', cat == 'Industry'),
+            aes(x = .5, label = cat), hjust = 0, colour = 'black') +
+  facet_grid2(city~., scales = 'free', independent = 'x', switch = 'both') +
+  labs(title  = 'Number of videos not retrieved using environment-related queries\nin which environment-related keywords appear, by city.') +
+  scale_fill_manual(values = pal) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,30), breaks = seq(0, 30, 5)) +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.x = element_blank(),
+        axis.line.y = element_blank(),
+        strip.text = element_text(vjust = 1))
+
+### interactive
+girafe(ggobj = crossNum_gg, width_svg = 6, height_svg = 4,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.3;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+::::
+
+:::: {.column width="50%"}
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'YT cross-query within env'
+#| echo: false
+#| warning: false
+
+crossEnv_gg <- YTData |>
+  mutate(Industry = ifelse(str_detect(transcription, regex(Industry, ignore_case = T)), 1, 0),
+         Transportation = ifelse(str_detect(transcription, regex(Transportation, ignore_case = T)), 1, 0),
+         Environment = ifelse(str_detect(transcription, regex(Environment, ignore_case = T)), 1, 0)) |> 
+  filter(cat == 'Environment, nature', Transportation == 1 | Industry == 1) |> 
+  drop_na() |> 
+  count(Transportation, Industry, city) |> 
+  mutate(var = case_when(Transportation == 0 & Industry == 1 ~ 'Industry',
+                         Transportation == 1 & Industry == 0 ~ 'Transportation',
+                         Transportation == 1 & Industry == 1 ~ 'Both')) |> 
+  ggplot(aes(n, reorder(var, n), fill = var, data_id = var, tooltip = n)) +
+  geom_col_interactive() +
+  geom_text_interactive(aes(x = .5, label = var), hjust = 0, colour = 'white') +
+  geom_text_interactive(data = ~. |> filter(city == 'TR', var == 'Both' | var == 'Transportation'),
+            aes(x = .5, label = var), hjust = 0, colour = 'black') +
+  geom_vline(aes(xintercept = 0), colour = 'gray25', linewidth = 1) +
+  facet_grid2(city~., switch = 'both') +
+  scale_fill_manual(values = pal) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,30), breaks = seq(0, 30, 5)) +
+  labs(title = 'Occurrences of keywords pertaining to industry and transportation\nin videos retrieved using environment-related queries, by city.') +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.x = element_blank(),
+        axis.line.y = element_blank(),
+        strip.text = element_text(vjust = 1))
+
+### interactive
+girafe(ggobj = crossEnv_gg, width_svg = 6, height_svg = 4,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.3;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+::::
+:::::::
+
+::: {.content-hidden when-format="html"}
+![Number of videos not retrieved using environment-related queries in which environment-related keywords appear, by city.](images/Chapter%205/crossNum_gg.png)
+:::
+
+::: {.content-hidden when-format="html"}
+![Occurrences of keywords pertaining to industry and transportation in videos retrieved using environment-related queries, by city.](images/chapter%205/crossEnv_gg.png)
+:::
+
+## Analysing the *UmbriaPress* corpus
+
+Due to the nature of the data source, the quality of the text contained in UmbriaPress is considerably higher than that of the YouTube corpus. Together with its much bigger size, this means that more sophisticated modelling can be a viable option. The analysis still begins with keyword-based retrieval and counting, to investigate salience. An exploration of how environmental policy is defined in the corpus was made possible by treating co-occurring tokens as nodes of a relational database and training a word-embedding model. The tone of public discourse around environmental policy was analysed through dictionary-based sentiment analysis.
+
+### Salience
+
+Consistently with what was found in previous analyses, the salience of transportation and industry follow very different paths in Terni and Perugia. A keyword-based retrieval returns pretty stable results in Perugia, where environmental policy comes under the spotlight in 2019, following the success of Fridays for Future, only to then yield its spot back to transportation, the main topic of discussion in the city. The situation in Terni is more erratic, each topic falling in and out of *fashion* way more easily.
+
+Interestingly enough, the co-occurrence pattern detected in the YouTube corpus is partially confirmed by this second chunk of the analysis. In Terni, 22% of the articles containing terms connected to Environmental policy also include Industry-related terms. This relationship is not completely symmetrical: the articles in which Industry and Environment-related terms co-occur represent merely 15% of those in which Industry-related tokens appear. This connection is way less significant in Perugia, where the percentages never reach 10%. Transportation and Environment are also less often connected in Perugia than in Terni. This might offer a hint about how environmental policy is discussed in the two cities: Perugia shows a more compartmentalised situation, where each topic is treated individually; whereas in Terni, environmental policy is often connected to other topics.
+
+::: {.content-hidden unless-format="html"}
+```{r}
+#| label: 'Topic salience by city'
+#| echo: false
+#| warning: false
+
+ret_salByCity <- UmbriaPressSal |> 
+  mutate(ratio = case_match(ratio, NA ~ 0, .default = ratio) |> round(digits = 3)) |> 
+  ggplot(aes(semester, ratio, col = topic, data_id = topic)) +
+  # geom_area(aes(fill = topic), alpha = .1, position = 'identity') +
+  geom_line_interactive() +
+  geom_point_interactive(size = 2.2, aes(tooltip = ratio)) +
+  geom_point_interactive(colour = 'white', size = 1.2, aes(tooltip = ratio)) +
+  facet_grid2(city~., independent = 'x', scales = 'free') +
+  scale_colour_manual(values = pal) +
+  scale_y_continuous(limits = c(0,.1), expand = c(0,0)) +
+  scale_x_date(limits = c(dmy('01/01/2016'), dmy('01/01/2025')),
+               expand = expansion(c(0,.01)),
+               date_breaks = 'years',
+               date_labels = '%Y') +
+  labs(title = 'Topic salience by city',
+       subtitle = 'Percentage of matching articles by semester') +
+  guides(color = guide_legend(override.aes = list(size = 5,
+                                                  linetype = 0,
+                                                  fill = NA))) +
+  theme(axis.title = element_blank(),
+        # axis.line.y = element_blank(),
+        legend.position = 'bottom',
+        strip.text = element_text(size = 12, vjust = 1.1, face = 'bold'))
+
+### interactive
+girafe(ggobj = ret_salByCity, width_svg = 8, height_svg = 5,
+       options = list(
+         opts_hover(css = ''), ## CSS code of line we're hovering over
+         opts_hover_inv(css = "opacity:0.3;"), ## CSS code of all other lines
+         opts_tooltip(css = "background-color:white;
+                      color:black;
+                      font-family:Helvetica;
+                      font-style:empty;
+                      padding:8px;
+                      border-radius:10px;",
+                      use_cursor_pos = T),
+         opts_toolbar(position = 'bottomright')))
+```
+:::
+
+::: {.content-hidden when-format="html"}
+![Topic salience by city](Images/Chapter%205/ret_salByCity.png)
+:::
+
+### From salience to meaning
+
+The relationship between words may help us in discovering both the definitions and connotations of certain words in our corpus. Representing the co-occurrences of significant terms and their immediate neighbours as relational data is a very valuable technique in this sense.
+
+#### Bigram networks
+
+The terms with the most connections, both in Terni and Perugia, are those relating to waste management. Interestingly enough, the word "waste" (*rifiuti*) is connected to "pollution" (*inquinamento*) in Perugia, but not in Terni.
+
+![Bigram relationship graph](Images/Chapter%205/bigram_graph.png)
+
+#### Word embeddings
+
+After splitting the data in two sub-corpora, one for each city, a word-embeddings model was able to represent words as points in two multi-dimensional spaces, one for each sub-corpus. Performing Principal Component Analysis (PCA) on the values associated to relevant terms in each one lets us read them in a *topographic* representation, the nearest words being more closely related semantically.
+
+![Principal Component Analysis (PCA) of word embeddings in the sub-corpora containing respectively all articles published in Terni and in Perugia](Images/Chapter%205/PCA_gg.png)
+
+A first cluster could be identified in the Terni subcorpus around industry. (Heavy) industry in Terni is connected to polluting emissions and toxic waste. "Waste incinerator" (*inceneritore*) is instead found at the top of the representation, together with the words "ecosystem", "reuse", and "pollution". This might explain the asymmetry in co-occurrences between the two queries "Environment" and "Industry": while some areas of environmental policy (namely air pollution) are connected to industrial activity, waste management is treated separately.
+
+The same cannot be said for Perugia, where "pollution", "emissions", "reuse", and "waste" all coexist in the otherwise lonely top-right corner, while waste management is closely related to transportation, and industry-related terms seem to float without an apparent order.
+
+**These results contribute to explain the differences in salience and *politicisation* of environmental policy between the two cities. While the *perugini* see the environment as a coherent, unified topic of discussion, the *ternani* clearly mark a difference between *free-standing* policy areas, such as *civilian* waste management, and those connected to the *noxiousness* of economic activity, such as air quality and toxic waste.**
+
+### Sentiment analysis
+
+Through dictionary-based sentiment analysis, an exploration of the tone in each of the three main topics analysed is possible. At a first glance, no real difference can be identified between the two cities, despite a certain variability between topics being present.
+
+![Distribution of the difference between positive and negative word count divided by the total, visualised by topic and city.](Images/Chapter%205/ret_ratioCity_gg.png)
+
+#### Restricting the corpus
+
+A first element to be taken into account is the differences in tone across newspapers: the *fast-journalism* outlets Terninrete and PerugiaToday tend to have a very neutral tone, due to the adoption of a very short format and the subsequent shallowness of their content.
+
+![Distribution of the difference between positive and negative word count divided by the total, visualised by topic and newspaper](Images/Chapter%205/ret_ratio_byPaper_gg.png)
+
+By restricting the corpus only to the articles published on *Corriere dell'Umbria*, one can easily see how sentiment values become more erratic: articles being way more negative in Terni than in Perugia in general, but especially when talking about environmental policy. However, the articles driving the negative *tail* of the distribution are, for the most part, related to single episodes or individuals' behaviour (e.g. illegal dumps in the countryside).
+
+![Distribution of the difference between positive and negative word count divided by the total, visualised by topic and city (sample restricted to articles published on Corriere dell'Umbria)](Images/Chapter%205/ret_ratioCorrCity_gg.png)
+
+Due to the extremely small size of the resulting sample, however, it is necessary take these last results without a grain of salt. The only takeaway from this last chunk of the analysis is that future research should take the *type* of journalism into account at the moment of compiling a corpus.
+
+#### Contextual sentiment
+
+By retrieving the tokens found immediately before or after terms connected to environmental policy, one can get a feel for *where* these keywords appear, as in their context in the overall text. By performing sentiment analysis on these *contextual* tokens, we can infer how environmental policy is conceived by the public in each city.
+
+The sentiment appears generally more negative in Terni, which is hardly surprising considering that it has the regional record for the worst air quality, and overly complicated waste management conditions. Terms connected to ecology and nature, however, are markedly positive in Terni. A possible explanation could be an idealisation of *nature* as opposed to the noxious urban environment.
+
+![Sentiment values computed on KWIC - trigrams centred around relevant keywords](Images/Chapter%205/bigram_sent_gg.png)
