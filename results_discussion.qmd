@@ -142,7 +142,7 @@ At a superficial level, sentiment values in each category seem to be fairly bala
 
 In general, we can confirm that environmental policy is more polarised and *politicised* in Terni, as even the sentiment computed on the basic query "environment" is extremely polarised, as opposed to Perugia, where videos collected with the same query are clearly positive. The problem of air quality seems to drive negative sentiment on environment-related topics in Terni.
 
-**The issue of insufficient air quality in Terni is clearly connected to the *noxiousness* of its industrial activity. However, when videos talk about industry, they almost never mention environmental policy. If one searches for videos about industrial activity in Terni, they will hear absolutely no mention of its effects on the environment. Nevertheless, a significant portion of the videos talking about the environmental conditions of the same town mention industrial activity at least once.**
+The issue of insufficient air quality in Terni is clearly connected to the *noxiousness* of its industrial activity. However, when videos talk about industry, they almost never mention environmental policy. If one searches for videos about industrial activity in Terni, they will hear absolutely no mention of its effects on the environment. Nevertheless, a significant portion of the videos talking about the environmental conditions of the same town mention industrial activity at least once. This fact speaks volumes about the population's priorities: that the relationship between heavy industry and air pollution is definitely recognised, but it is simply deemed irrelevant in a discussion on industrial planning.
 
 ::::::: columns
 :::: {.column width="50%"}
@@ -333,7 +333,7 @@ A first cluster could be identified in the Terni subcorpus around industry. (Hea
 
 The same cannot be said for Perugia, where "pollution", "emissions", "reuse", and "waste" all coexist in the otherwise lonely top-right corner, while waste management is closely related to transportation, and industry-related terms seem to float without an apparent order.
 
-**These results contribute to explain the differences in salience and *politicisation* of environmental policy between the two cities. While the *perugini* see the environment as a coherent, unified topic of discussion, the *ternani* clearly mark a difference between *free-standing* policy areas, such as *civilian* waste management, and those connected to the *noxiousness* of economic activity, such as air quality and toxic waste.**
+These results contribute to explain the differences in salience and *politicisation* of environmental policy between the two cities. While the *perugini* see the environment as a coherent, unified topic of discussion, the *ternani* clearly mark a difference between *free-standing* policy areas, such as *civilian* waste management, and those connected to the *noxiousness* of economic activity, such as air quality and toxic waste.
 
 ### Sentiment analysis
 

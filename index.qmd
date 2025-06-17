@@ -1,9 +1,16 @@
 ---
 title: Preface
 ---
+
+------------------------------------------------------------------------
+
 This thesis marked the end of my two-year journey as a master student of Politics and Social Policy at the University of Bologna. It represents the result of approximately a year of work between a healthy amount of desk research, data collection, data analysis, and finally writing it all down. Initially an excuse to get accustomed to computational methods for social sciences and Natural Language Processing (NLP), it quickly turned into an opportunity to rekindle my personal connection with my home town.
 
-If you want to get in touch or are curious about the rest of the social sciency stuff I do, feel free to give my [website](https://lormatt.github.io/) a look.
+::: {.callout-note appearance="simple"}
+## Get in touch!
+
+If you want to have a chat or are curious about the rest of the social sciency stuff I do, check out my [website](https://lormatt.github.io/).
+:::
 
 ## Acknowledgements {.unnumbered}
 
